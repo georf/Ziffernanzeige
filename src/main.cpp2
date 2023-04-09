@@ -1,0 +1,106 @@
+#include <Arduino.h>
+
+#define SR_DATA_PIN D8          // Outputs the byte to transfer
+#define SR_LOAD_PIN D7          // Controls the internal transference of data in SN74HC595 internal registers
+#define SR_CLOCK_PIN D6         // Generates the clock signal to control the transference of data
+#define SR_CLOCK_PIN_OVER_OE D5 // Generates the clock signal to control the transference of data
+#define SR_OE D4
+
+void setup()
+{
+
+    pinMode(SR_DATA_PIN, OUTPUT);
+    pinMode(SR_LOAD_PIN, OUTPUT);
+    pinMode(SR_CLOCK_PIN, OUTPUT);
+    pinMode(SR_CLOCK_PIN_OVER_OE, OUTPUT);
+    pinMode(LED_BUILTIN, OUTPUT);
+    pinMode(D1, INPUT);
+    pinMode(D2, INPUT);
+    pinMode(D3, INPUT);
+    pinMode(D4, OUTPUT);
+    Serial.begin(9600);
+
+    analogWrite(D4, 245);
+}
+
+void shiftOut2(uint8_t dataPin, uint8_t clockPin, uint8_t bitOrder, uint8_t val)
+{
+    uint8_t i;
+
+    for (i = 0; i < 8; i++)
+    {
+        if (bitOrder == LSBFIRST)
+            digitalWrite(dataPin, !!(val & (1 << i)));
+        else
+            digitalWrite(dataPin, !!(val & (1 << (7 - i))));
+
+        digitalWrite(clockPin, HIGH);
+        digitalWrite(clockPin, LOW);
+    }
+}
+
+void shiftOutOE(uint8_t dataPin, uint8_t clockPin, uint8_t bitOrder, uint8_t val)
+{
+    uint8_t i;
+
+    for (i = 0; i < 8; i++)
+    {
+        if (bitOrder == LSBFIRST)
+            digitalWrite(dataPin, !!(val & (1 << i)));
+        else
+            digitalWrite(dataPin, !!(val & (1 << (7 - i))));
+
+        digitalWrite(clockPin, LOW);
+        digitalWrite(clockPin, HIGH);
+    }
+}
+
+// uint8_t bright = 200;
+
+void loop()
+{
+    uint8_t number = 0;
+    uint8_t part = 0;
+    for (uint8_t i = 1; i < 7; i++)
+    {
+        number = 0;
+        // 0 not connected
+        // 1 connected to 7  (points)
+        // 2 connected to 2  (J6)
+        // 3 connected to 4  (J5)
+        // 4 connected to 6  (J4)
+        // 5 connected to 8  (J3)
+        // 6 connected to 10 (J2)
+        // 7 LED
+
+        bitWrite(number, i, true);
+
+        digitalWrite(SR_CLOCK_PIN_OVER_OE, HIGH);
+
+        ::digitalWrite(SR_LOAD_PIN, LOW);
+        shiftOut2(SR_DATA_PIN, SR_CLOCK_PIN, MSBFIRST, number);
+        shiftOut2(SR_DATA_PIN, SR_CLOCK_PIN, MSBFIRST, number);
+        ::digitalWrite(SR_LOAD_PIN, HIGH);
+
+        Serial.print("next number: ");
+        Serial.println(number, BIN);
+        delay(50);
+
+        part = 0;
+
+        for (uint8_t u = 0; u < 9; u++)
+        {
+            part = 0;
+            bitWrite(part, u, true);
+            ::digitalWrite(SR_LOAD_PIN, LOW);
+            shiftOutOE(SR_DATA_PIN, SR_CLOCK_PIN_OVER_OE, MSBFIRST, part);
+            ::digitalWrite(SR_LOAD_PIN, HIGH);
+            Serial.print("next part: ");
+            Serial.println(part, BIN);
+            delay(100);
+            // analogWrite(D4, bright);
+            // bright ++;
+            // if (bright < 200) bright = 240;
+        }
+    }
+}

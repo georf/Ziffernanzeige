@@ -1,12 +1,12 @@
 #include <Arduino.h>
-#include <Display.h>
 #include <StopWatch.h>
 #include <Button.h>
-#include <SerialControl.h>
+#include <WifiControl.h>
 #include <EEPROM.h>
 
 #define SR_OE D4
 #define pinBtn D3
+#define pinWifi D2
 
 #define empty "     "
 

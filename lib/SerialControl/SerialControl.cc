@@ -1,14 +1,11 @@
 #include "SerialControl.h"
 
-SerialControl::SerialControl(void (*pCallbackStartF)(), void (*pCallbackWaitF)(), void (*pCallbackShowF)(uint32_t lastDeciTime, uint8_t lastLine))
+void SerialControl::Startup(void (*pCallbackStartF)(), void (*pCallbackWaitF)(), void (*pCallbackShowF)(uint32_t lastDeciTime, uint8_t lastLine))
 {
     pCallbackStart = pCallbackStartF;
     pCallbackWait = pCallbackWaitF;
     pCallbackShow = pCallbackShowF;
-}
 
-void SerialControl::Startup()
-{
     Serial.begin(9600);
     while (!Serial)
         ;
@@ -21,31 +18,36 @@ void SerialControl::handle()
     {
         control = Serial.read();
         Serial.write(control);
+        handle(control);
+    }
+}
 
-        currentLine[currentLineIndex] = control;
-        currentLineIndex++;
+void SerialControl::handle(byte control)
+{
+    currentLine[currentLineIndex] = control;
+    currentLineIndex++;
 
-        if (currentLineIndex > 49)
+    if (currentLineIndex > 49)
+    {
+        currentLineIndex = 0;
+    }
+    else if (control == '\r' || control == '\n')
+    {
+        if (currentLineIndex == 1)
         {
             currentLineIndex = 0;
+            return;
         }
-        else if (control == '\r' || control == '\n')
-        {
-            if (currentLineIndex == 1) {
-                currentLineIndex = 0;
-                return;
-            }
 
-            if (currentLineIndex > 30)
-                HandlePlatz();
-            else if (currentLineIndex < 19)
-                HandleShortCommands();
-            else if (currentLine[0] == '#')
-                HandleTeamComputerLong(0);
-            else if (currentLine[1] == '#')
-                HandleTeamComputerLong(1);
-            currentLineIndex = 0;
-        }
+        if (currentLineIndex > 30)
+            HandlePlatz();
+        else if (currentLineIndex < 19)
+            HandleShortCommands();
+        else if (currentLine[0] == '#')
+            HandleTeamComputerLong(0);
+        else if (currentLine[1] == '#')
+            HandleTeamComputerLong(1);
+        currentLineIndex = 0;
     }
 }
 

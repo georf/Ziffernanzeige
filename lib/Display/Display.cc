@@ -32,14 +32,14 @@ void Display::selectRegister(uint8_t line, uint8_t part)
     // second register
     uint8_t data = 0;
     bitWrite(data, 7, _green_led);
-    if (line == 0)
+    if (line == 1)
         bitWrite(data, part, true);
     shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, MSBFIRST, data);
 
     // first register
     data = 0;
     bitWrite(data, 7, _red_led);
-    if (line == 1)
+    if (line == 0)
         bitWrite(data, part, true);
     shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, MSBFIRST, data);
 
@@ -50,6 +50,10 @@ void Display::selectRegister(uint8_t line, uint8_t part)
 
 void Display::setOutput(uint8_t line, const char *characters, byte showPoints)
 {
+    // Serial.print(line);
+    // Serial.print(": ");
+    // Serial.println(characters);
+
     for (uint8_t i = 0; i < 5; i++)
     {
         // change registers only if changed
@@ -124,10 +128,18 @@ byte Display::char2Data(char character)
         return 0b01011110;
     case 'c':
         return 0b00011010;
+    case 'n':
+        return 0b00011100;
     case 'o':
         return 0b00011110;
     case 't':
         return 0b10011010;
+    case 'y':
+        return 0b01110110;
+    case 'e':
+        return 0b11111010;
+    case 's':
+        return 0b11010110;
     default:
         return 0;
     }

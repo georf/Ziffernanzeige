@@ -5,18 +5,21 @@ Modus lines[2] = {BOOTING, BOOTING};
 Display display;
 StopWatch stopWatch;
 Button btn = Button(pinBtn, &btnCallback, &btnCallbackLong);
-SerialControl serialControl = SerialControl(&stopWatchStart, &waiting, &showingCallback);
+SerialControl serialControl;
+WifiControl wifiControl;
 
 void setup()
 {
     EEPROM.begin(512);
     display.init();
     pinMode(D1, INPUT);
-    pinMode(D2, INPUT);
+    pinMode(pinWifi, INPUT);
     pinMode(SR_OE, OUTPUT);
-    Serial.begin(9600);
+    serialControl.Startup(&stopWatchStart, &waiting, &showingCallback);
 
     analogWrite(SR_OE, EEPROM.read(0));
+
+    wifiControl.Startup(&display, &serialControl, digitalRead(pinWifi));
 }
 
 void btnCallback()
@@ -51,6 +54,8 @@ void loop()
     btn.read();
     handleDisplay();
     serialControl.handle();
+    if (wifiControl.handleOrBooting())
+        modus = BOOTING;
 }
 
 void handleDisplay()
@@ -83,9 +88,8 @@ void handleDisplay()
         break;
 
     case BOOTING:
-        display.setOutput(0, "88888", 0b1111);
-        display.setOutput(1, "88888", 0b1111);
-        waiting();
+        if (wifiControl.bootingFinish())
+            waiting();
         break;
 
     case SHOWING:

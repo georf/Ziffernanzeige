@@ -4,8 +4,8 @@ class SerialControl
 {
 public:
     void handle();
-    SerialControl(void (*pCallbackStartF)(), void (*pCallbackWaitF)(), void (*pCallbackShowF)(uint32_t lastDeciTime, uint8_t lastLine));
-    void Startup();
+    void handle(byte control);
+    void Startup(void (*pCallbackStartF)(), void (*pCallbackWaitF)(), void (*pCallbackShowF)(uint32_t lastDeciTime, uint8_t lastLine));
 
 private:
     boolean stoppable[2] = {true, true};

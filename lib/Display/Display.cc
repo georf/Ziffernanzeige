@@ -133,7 +133,7 @@ byte Display::char2Data(char character)
     case 'o':
         return 0b00011110;
     case 't':
-        return 0b10011010;
+        return 0b01011010;
     case 'y':
         return 0b01110110;
     case 'e':
